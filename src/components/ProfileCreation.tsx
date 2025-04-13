@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProfileCreation.css";
+import { addDoc } from "firebase/firestore";
+import { doctorsCollection, patientsCollection } from "../Firebase";
 
 interface ProfileCreationProps {
   userType: string;
@@ -11,21 +13,21 @@ interface ProfileData {
   name: string;
   email: string;
   phoneNumber: string;
-  [key: string]: string | undefined;
+  [key: string]: string | string[] | undefined;
 }
 
 const ProfileCreation = ({ userType, onComplete }: ProfileCreationProps) => {
   const navigate = useNavigate();
-  const [profileData, setProfileData] = useState<ProfileData>({
+  const profileData = {
     name: "",
     email: "",
     phoneNumber: "",
-  });
+  };
 
   const extraFields =
     userType === "doctor"
-      ? { specialization: "", licenseNumber: "" }
-      : { dateOfBirth: "", emergencyContact: "" };
+      ? { specialization: "", licenseNumber: "", patients: [] }
+      : { dateOfBirth: "", emergencyContact: "", notes: [] };
 
   const [formData, setFormData] = useState<ProfileData>({
     ...profileData,
@@ -40,23 +42,21 @@ const ProfileCreation = ({ userType, onComplete }: ProfileCreationProps) => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    localStorage.setItem(
-      `${userType.toLowerCase()}Profile`,
-      JSON.stringify(formData)
-    );
-    setProfileData(formData);
+    const newUserRef =
+      userType === "doctor"
+        ? await addDoc(doctorsCollection, formData)
+        : await addDoc(patientsCollection, formData);
 
-    if (userType === "doctor") {
-      if (!localStorage.getItem("patients")) {
-        localStorage.setItem("patients", JSON.stringify([]));
-      }
-    }
+    localStorage.setItem(
+      `${userType.toLowerCase()}Id`,
+      JSON.stringify(newUserRef.id)
+    );
 
     onComplete();
     navigate(`/${userType.toLowerCase()}-dashboard`);
-  };
+  }
 
   return (
     <div className="profile-creation-container">

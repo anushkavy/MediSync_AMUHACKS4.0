@@ -1,10 +1,15 @@
 // components/patient/PatientDashboard.tsx
 import { useState, useEffect } from "react";
 import "./PatientDashboard.css";
+import {
+  onSnapshot,
+  QuerySnapshot,
+  DocumentData,
+  getDocs,
+} from "firebase/firestore";
+import { patientsCollection, doctorsCollection } from "../../Firebase";
 
-interface PatientDashboardProps {}
-
-const PatientDashboard = ({}: PatientDashboardProps) => {
+const PatientDashboard = () => {
   const [patientProfile, setPatientProfile] = useState<any>(null);
   const [patientData, setPatientData] = useState<any>(null);
   const [patientCode, setPatientCode] = useState<string>("");
@@ -12,34 +17,55 @@ const PatientDashboard = ({}: PatientDashboardProps) => {
   const [isVerified, setIsVerified] = useState(false);
   const [codeError, setCodeError] = useState("");
 
+  const patientId = JSON.parse(localStorage.getItem("patientId") || "");
+
   useEffect(() => {
-    // Load patient profile
-    const profileData = localStorage.getItem("patientProfile");
-    if (profileData) {
-      setPatientProfile(JSON.parse(profileData));
-    }
+    const unsubscribe = onSnapshot(
+      patientsCollection,
+      function (snapshot: QuerySnapshot<DocumentData>) {
+        const matchedDoc = snapshot.docs.find((doc) => doc.id === patientId);
+        if (matchedDoc) {
+          setPatientProfile({ ...matchedDoc.data(), id: matchedDoc.id });
+          setPatientData({ ...matchedDoc.data(), id: matchedDoc.id });
+        }
+      }
+    );
+    setIsVerified(Boolean(localStorage.getItem("isVerified")) || false);
 
-    // Check if patient is already verified
-    const storedData = localStorage.getItem("verifiedPatientData");
-    if (storedData) {
-      setPatientData(JSON.parse(storedData));
-      setIsVerified(true);
-    }
     setIsLoading(false);
-  }, []);
+    return unsubscribe;
+  }, [patientId]);
 
-  const verifyPatientCode = () => {
-    // Get all patients from localStorage
-    const patients = JSON.parse(localStorage.getItem("patients") || "[]");
-    const patient = patients.find((p: any) => p.code === patientCode);
+  const verifyPatientCode = async () => {
+    try {
+      const snapshot = await getDocs(doctorsCollection);
+      let found = false;
 
-    if (patient) {
-      setPatientData(patient);
-      setIsVerified(true);
-      localStorage.setItem("verifiedPatientData", JSON.stringify(patient));
-      setCodeError("");
-    } else {
-      setCodeError("Invalid patient code. Please check and try again.");
+      snapshot.forEach((doc) => {
+        const doctorData = doc.data();
+        const matchingPatient = doctorData.patients?.find(
+          (patient: any) => patient.code === patientCode
+        );
+
+        if (matchingPatient) {
+          setPatientData(matchingPatient);
+          setIsVerified(true);
+          localStorage.setItem(
+            "verifiedPatientData",
+            JSON.stringify(matchingPatient)
+          );
+          localStorage.setItem("isVerified", "true");
+          setCodeError("");
+          found = true;
+        }
+      });
+
+      if (!found) {
+        setCodeError("Invalid patient code. Please check and try again.");
+      }
+    } catch (error) {
+      console.error("Error verifying patient code:", error);
+      setCodeError("Something went wrong. Please try again later.");
     }
   };
 

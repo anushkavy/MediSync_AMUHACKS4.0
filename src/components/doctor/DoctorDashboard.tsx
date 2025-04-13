@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import PatientList from "./PatientList";
 import AddPatientForm from "./AddPatientForm";
 import "./DoctorDashboard.css";
+import {
+  onSnapshot,
+  DocumentData,
+  QuerySnapshot,
+  doc,
+  setDoc,
+} from "firebase/firestore";
+import { db, doctorsCollection } from "../../Firebase";
 
 interface Patient {
   id: string;
@@ -17,23 +25,32 @@ const DoctorDashboard = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [showAddPatient, setShowAddPatient] = useState(false);
   const [doctorProfile, setDoctorProfile] = useState<any>(null);
+  const doctorId = JSON.parse(localStorage.getItem("doctorId") || "");
 
   useEffect(() => {
-    const profileData = localStorage.getItem("doctorProfile");
-    if (profileData) {
-      setDoctorProfile(JSON.parse(profileData));
-    }
+    const unsubscribe = onSnapshot(
+      doctorsCollection,
+      function (snapshot: QuerySnapshot<DocumentData>) {
+        const matchedDoc = snapshot.docs.find((doc) => doc.id === doctorId);
+        if (matchedDoc) {
+          setDoctorProfile({ ...matchedDoc.data(), id: matchedDoc.id });
+        }
+      }
+    );
+    return unsubscribe;
+  }, [doctorId]);
 
-    const storedPatients = localStorage.getItem("patients");
-    if (storedPatients) {
-      setPatients(JSON.parse(storedPatients));
+  useEffect(() => {
+    if (doctorProfile) {
+      setPatients((doctorProfile as { patients: [] })?.patients);
     }
-  }, []);
+  }, [doctorProfile]);
 
-  const savePatients = (updatedPatients: Patient[]) => {
-    setPatients(updatedPatients);
-    localStorage.setItem("patients", JSON.stringify(updatedPatients));
-  };
+  // add new patients
+  async function savePatients(updatedPatients: Patient[]) {
+    const docRef = doc(db, "doctors", doctorId);
+    await setDoc(docRef, { patients: updatedPatients }, { merge: true });
+  }
 
   const addPatient = (newPatient: Patient) => {
     const updatedPatients = [...patients, newPatient];
