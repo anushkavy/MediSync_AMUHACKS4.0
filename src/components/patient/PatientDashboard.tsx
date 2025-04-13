@@ -9,21 +9,6 @@ import {
 } from "firebase/firestore";
 import { patientsCollection, doctorsCollection } from "../../Firebase";
 
-type DoctorProfileData = {
-  name: string;
-  email: string;
-  phoneNumber: string;
-  licenseNumber: string;
-  patients: {
-    name: string;
-    id: string;
-    code: string;
-    email: string;
-    lastVisit: string | null;
-  }[];
-  specialization: string;
-};
-
 const PatientDashboard = () => {
   const [patientProfile, setPatientProfile] = useState<any>(null);
   const [patientData, setPatientData] = useState<any>(null);
