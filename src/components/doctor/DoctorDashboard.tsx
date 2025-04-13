@@ -8,8 +8,12 @@ import {
   QuerySnapshot,
   doc,
   setDoc,
+  query,
+  where,
+  getDocs,
+  orderBy,
 } from "firebase/firestore";
-import { db, doctorsCollection } from "../../Firebase";
+import { db, doctorsCollection, notesCollection } from "../../Firebase";
 
 interface Patient {
   id: string;
@@ -21,11 +25,22 @@ interface Patient {
   notes: string[];
 }
 
+interface Note {
+  id: string;
+  patientCode: string;
+  patientName: string;
+  content: string;
+  createdAt: string;
+}
+
 const DoctorDashboard = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [showAddPatient, setShowAddPatient] = useState(false);
   const [doctorProfile, setDoctorProfile] = useState<any>(null);
   const doctorId = JSON.parse(localStorage.getItem("doctorId") || "");
+  const [activeTab, setActiveTab] = useState("patients");
+  const [patientNotes, setPatientNotes] = useState<Note[]>([]);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -45,6 +60,43 @@ const DoctorDashboard = () => {
       setPatients((doctorProfile as { patients: [] })?.patients);
     }
   }, [doctorProfile]);
+
+  useEffect(() => {
+    if (activeTab === "patient-notes" && patients && patients.length > 0) {
+      fetchAllPatientNotes();
+    }
+  }, [activeTab, patients]);
+
+  // Fetch all notes from all patients
+  const fetchAllPatientNotes = async () => {
+    if (!patients || patients.length === 0) return;
+
+    setIsLoadingNotes(true);
+    try {
+      const patientCodes = patients.map((patient) => patient.code);
+      const notesQuery = query(
+        notesCollection,
+        where("patientCode", "in", patientCodes),
+        orderBy("createdAt", "desc")
+      );
+
+      const snapshot = await getDocs(notesQuery);
+      const notes: Note[] = [];
+
+      snapshot.forEach((doc) => {
+        notes.push({
+          id: doc.id,
+          ...(doc.data() as Omit<Note, "id">),
+        });
+      });
+
+      setPatientNotes(notes);
+    } catch (error) {
+      console.error("Error fetching patient notes:", error);
+    } finally {
+      setIsLoadingNotes(false);
+    }
+  };
 
   // add new patients
   async function savePatients(updatedPatients: Patient[]) {
@@ -67,6 +119,15 @@ const DoctorDashboard = () => {
     return code;
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return (
+      date.toLocaleDateString() +
+      " at " +
+      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    );
+  };
+
   return (
     <div className="doctor-dashboard">
       <div className="dashboard-header">
@@ -85,7 +146,10 @@ const DoctorDashboard = () => {
 
       <div className="dashboard-container">
         <div className="dashboard-sidebar">
-          <div className="menu-item active">
+          <div
+            className={`menu-item ${activeTab === "patients" ? "active" : ""}`}
+            onClick={() => setActiveTab("patients")}
+          >
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -108,7 +172,47 @@ const DoctorDashboard = () => {
             </svg>
             Patients
           </div>
-          <div className="menu-item">
+          <div
+            className={`menu-item ${
+              activeTab === "patient-notes" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("patient-notes")}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 12H15"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M12 9V15"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M20 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V6C22 4.89543 21.1046 4 20 4Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Patient Notes
+          </div>
+          <div
+            className={`menu-item ${
+              activeTab === "appointments" ? "active" : ""
+            }`}
+            onClick={() => setActiveTab("appointments")}
+          >
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -131,7 +235,10 @@ const DoctorDashboard = () => {
             </svg>
             Appointments
           </div>
-          <div className="menu-item">
+          <div
+            className={`menu-item ${activeTab === "summaries" ? "active" : ""}`}
+            onClick={() => setActiveTab("summaries")}
+          >
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -157,46 +264,150 @@ const DoctorDashboard = () => {
         </div>
 
         <div className="dashboard-content">
-          <div className="dashboard-content-header">
-            <h2>Your Patients</h2>
-            <button
-              className="add-patient-button"
-              onClick={() => setShowAddPatient(!showAddPatient)}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 5V19"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M5 12H19"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Add Patient
-            </button>
-          </div>
+          {activeTab === "patients" && (
+            <>
+              <div className="dashboard-content-header">
+                <h2>Your Patients</h2>
+                <button
+                  className="add-patient-button"
+                  onClick={() => setShowAddPatient(!showAddPatient)}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 5V19"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M5 12H19"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  Add Patient
+                </button>
+              </div>
 
-          {showAddPatient ? (
-            <AddPatientForm
-              onAdd={addPatient}
-              onCancel={() => setShowAddPatient(false)}
-              generatePatientCode={generatePatientCode}
-            />
-          ) : (
-            <PatientList patients={patients} />
+              {showAddPatient ? (
+                <AddPatientForm
+                  onAdd={addPatient}
+                  onCancel={() => setShowAddPatient(false)}
+                  generatePatientCode={generatePatientCode}
+                />
+              ) : (
+                <PatientList patients={patients} />
+              )}
+            </>
+          )}
+
+          {activeTab === "patient-notes" && (
+            <div className="patient-notes-container">
+              <div className="dashboard-content-header">
+                <h2>Patient Health Notes</h2>
+                <button
+                  className="refresh-notes-button"
+                  onClick={fetchAllPatientNotes}
+                  disabled={isLoadingNotes}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 4V10H7"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M23 20V14H17"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M20.49 9C19.9828 7.56678 19.1209 6.2689 17.9845 5.23489C16.8482 4.20089 15.4745 3.46426 13.9917 3.10029C12.5089 2.73631 10.9652 2.75627 9.49214 3.15793C8.01903 3.5596 6.66849 4.32812 5.56 5.39L1 10M23 14L18.44 18.61C17.3315 19.6719 15.981 20.4404 14.5079 20.8421C13.0348 21.2437 11.4911 21.2637 10.0083 20.8997C8.52547 20.5357 7.15181 19.7991 6.01547 18.7651C4.87913 17.7311 4.01717 16.4332 3.51 15"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  Refresh
+                </button>
+              </div>
+
+              {isLoadingNotes ? (
+                <div className="notes-loading">Loading patient notes...</div>
+              ) : patientNotes.length === 0 ? (
+                <div className="no-notes">
+                  <div className="no-notes-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="48"
+                      height="48"
+                    >
+                      <path
+                        d="M9 12H15"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 9V15"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M20 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20H20C21.1046 20 22 19.1046 22 18V6C22 4.89543 21.1046 4 20 4Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <p>No health notes found for your patients</p>
+                </div>
+              ) : (
+                <div className="notes-list">
+                  {patientNotes.map((note) => (
+                    <div key={note.id} className="note-card">
+                      <div className="note-header">
+                        <h3>{note.patientName}</h3>
+                        <span className="patient-code">
+                          Code: {note.patientCode}
+                        </span>
+                        <span className="note-date">
+                          {formatDate(note.createdAt)}
+                        </span>
+                      </div>
+                      <div className="note-content">{note.content}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -18,3 +18,4 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app)
 export const doctorsCollection = collection(db, "doctors")
 export const patientsCollection = collection(db, "patients")
+export const notesCollection = collection(db, "notes")
