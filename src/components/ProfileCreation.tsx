@@ -50,6 +50,10 @@ const ProfileCreation = ({ userType, onComplete }: ProfileCreationProps) => {
         : await addDoc(patientsCollection, formData);
 
     localStorage.setItem(
+      `${userType.toLowerCase()}Profile`,
+      JSON.stringify(formData)
+    );
+    localStorage.setItem(
       `${userType.toLowerCase()}Id`,
       JSON.stringify(newUserRef.id)
     );
