@@ -8,7 +8,6 @@ import {
   QuerySnapshot,
   doc,
   setDoc,
-  collection,
   query,
   where,
   getDocs,
