@@ -1,13 +1,7 @@
-// components/patient/PatientDashboard.tsx
 import { useState, useEffect } from "react";
 import "./PatientDashboard.css";
-import {
-  onSnapshot,
-  QuerySnapshot,
-  DocumentData,
-  getDocs,
-} from "firebase/firestore";
-import { patientsCollection, doctorsCollection } from "../../Firebase";
+import { getDocs } from "firebase/firestore";
+import { doctorsCollection } from "../../Firebase";
 
 const PatientDashboard = () => {
   const [patientProfile, setPatientProfile] = useState<any>(null);
@@ -17,26 +11,22 @@ const PatientDashboard = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [codeError, setCodeError] = useState("");
 
-  const patientId = JSON.parse(localStorage.getItem("patientId") || "");
-
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      patientsCollection,
-      function (snapshot: QuerySnapshot<DocumentData>) {
-        const matchedDoc = snapshot.docs.find((doc) => doc.id === patientId);
-        if (matchedDoc) {
-          setPatientProfile({ ...matchedDoc.data(), id: matchedDoc.id });
-          setPatientData({ ...matchedDoc.data(), id: matchedDoc.id });
-        }
-      }
-    );
-    setIsVerified(Boolean(localStorage.getItem("isVerified")) || false);
+    const profileData = localStorage.getItem("patientProfile");
+    if (profileData) {
+      setPatientProfile(JSON.parse(profileData));
+    }
 
+    // Check if patient is already verified
+    const storedData = localStorage.getItem("verifiedPatientData");
+    if (storedData) {
+      setPatientData(JSON.parse(storedData));
+      setIsVerified(true);
+    }
     setIsLoading(false);
-    return unsubscribe;
-  }, [patientId]);
+  }, []);
 
-  const verifyPatientCode = async () => {
+  async function verifyPatientCode() {
     try {
       const snapshot = await getDocs(doctorsCollection);
       let found = false;
@@ -46,7 +36,6 @@ const PatientDashboard = () => {
         const matchingPatient = doctorData.patients?.find(
           (patient: any) => patient.code === patientCode
         );
-
         if (matchingPatient) {
           setPatientData(matchingPatient);
           setIsVerified(true);
@@ -58,16 +47,15 @@ const PatientDashboard = () => {
           setCodeError("");
           found = true;
         }
+        if (!found) {
+          setCodeError("Invalid patient code. Please check and try again.");
+        }
       });
-
-      if (!found) {
-        setCodeError("Invalid patient code. Please check and try again.");
-      }
     } catch (error) {
       console.error("Error verifying patient code:", error);
       setCodeError("Something went wrong. Please try again later.");
     }
-  };
+  }
 
   if (isLoading) {
     return <div className="loading">Loading...</div>;
