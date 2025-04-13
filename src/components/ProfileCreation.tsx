@@ -46,6 +46,7 @@ const ProfileCreation = ({ userType, onComplete }: ProfileCreationProps) => {
       `${userType.toLowerCase()}Profile`,
       JSON.stringify(formData)
     );
+    setProfileData(formData);
 
     if (userType === "doctor") {
       if (!localStorage.getItem("patients")) {
