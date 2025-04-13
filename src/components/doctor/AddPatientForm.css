@@ -1,0 +1,154 @@
+/* AddPatientForm.css */
+
+.add-patient-form-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.add-patient-form-container h3 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.add-patient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.code-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.patient-code-display {
+  background-color: #f5f7fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-align: center;
+  user-select: none;
+  
+}
+
+.code-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.reveal-code-button,
+.generate-code-button, .copy-code-button {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f5f7fa;
+  color: #555;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reveal-code-button:hover,
+.generate-code-button:hover, .copy-code-button:hover {
+  background-color: #edf0f5;
+}
+
+.code-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.code-info svg {
+  color: #4a90e2;
+  flex-shrink: 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.cancel-button,
+.submit-button {
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-button {
+  background-color: transparent;
+  border: 1px solid #ddd;
+  color: #555;
+}
+
+.cancel-button:hover {
+  background-color: #f5f5f5;
+}
+
+.submit-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+}
+
+.submit-button:hover {
+  background-color: #3a7bc8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .add-patient-form-container {
+    padding: 16px;
+    margin: 0 10px;
+  }
+  
+  .code-actions {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,78 @@
+/* UserSelection.css */
+.user-selection-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f5f7ff 0%, #e6ebff 100%);
+}
+.user-selection-content {
+  max-width: 900px;
+  width: 100%;
+  background-color: white;
+  border-radius: var(--radius-md);
+  padding: 3rem;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+.user-selection-content h1 {
+  color: var(--gray-900);
+  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+.user-selection-content p {
+  color: var(--gray-600);
+  margin-bottom: 3rem;
+  font-size: 1.1rem;
+}
+.user-selection-options {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+.user-selection-option {
+  flex: 1;
+  max-width: 350px;
+  background-color: white;
+  border-radius: var(--radius);
+  padding: 2rem;
+  border: 1px solid var(--gray-200);
+  transition: var(--transition);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.user-selection-option:hover, .user-selection-option.hovered {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light);
+}
+.option-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+.option-icon svg {
+  width: 40px;
+  height: 40px;
+}
+.user-selection-option h2 {
+  margin-bottom: 1rem;
+  color: var(--gray-900);
+  font-weight: 600;
+}
+.user-selection-option p {
+  color: var(--gray-600);
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}

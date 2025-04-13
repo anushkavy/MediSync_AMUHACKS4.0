@@ -1,0 +1,108 @@
+/* ProfileCreation.css */
+.profile-creation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f5f7ff 0%, #e6ebff 100%);
+}
+
+.profile-creation-content {
+  max-width: 600px;
+  width: 100%;
+  background-color: white;
+  border-radius: var(--radius-md);
+  padding: 3rem;
+  box-shadow: var(--shadow-md);
+}
+
+.profile-creation-content h1 {
+  color: var(--gray-900);
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.profile-creation-content p {
+  color: var(--gray-600);
+  margin-bottom: 2rem;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--gray-800);
+  font-size: 0.875rem;
+}
+
+.form-group input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  border-color: var(--primary-500);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+.form-group input::placeholder {
+  color: var(--gray-400);
+}
+
+.create-profile-button {
+  margin-top: 1rem;
+  padding: 0.875rem 1.5rem;
+  background-color: var(--primary-600);
+  color: black;
+  border: 1px solid black;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.create-profile-button:hover {
+  background-color: var(--primary-700);
+}
+
+.create-profile-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.3);
+}
+
+@media (max-width: 768px) {
+  .profile-creation-container {
+    padding: 1rem;
+  }
+  
+  .profile-creation-content {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-creation-content {
+    padding: 1.5rem;
+  }
+  
+  .profile-creation-content h1 {
+    font-size: 1.5rem;
+  }
+}
