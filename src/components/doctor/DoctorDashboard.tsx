@@ -63,7 +63,11 @@ const DoctorDashboard = () => {
   }, [doctorProfile]);
 
   useEffect(() => {
-    if (activeTab === "patient-notes" && patients && patients.length > 0) {
+    if (
+      (activeTab === "patient-notes" || activeTab === "summaries") &&
+      patients &&
+      patients.length > 0
+    ) {
       fetchAllPatientNotes();
     }
   }, [activeTab, patients]);
