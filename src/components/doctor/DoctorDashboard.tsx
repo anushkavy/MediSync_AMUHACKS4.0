@@ -141,7 +141,7 @@ const DoctorDashboard = () => {
   const [dateFilter, setDateFilter] = useState("all");
   const [patientFilter, setPatientFilter] = useState("all");
 
-  console.log("patient notes", patientNotes);
+  console.log("patient notes", !isLoadingNotes && patientNotes);
 
   // Function to generate summaries from patient notes
   async function generateSummaries() {
@@ -271,9 +271,9 @@ const DoctorDashboard = () => {
       };
 
       generatedSummaries.push(summary);
+      console.log("generated summaries", generatedSummaries);
     });
   }
-  console.log("generated summaries", generateSummaries);
   // Format date function
   const formatSummaryDate = (dateString: string) => {
     const date = new Date(dateString);
