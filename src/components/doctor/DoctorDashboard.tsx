@@ -141,6 +141,8 @@ const DoctorDashboard = () => {
   const [dateFilter, setDateFilter] = useState("all");
   const [patientFilter, setPatientFilter] = useState("all");
 
+  console.log("patient notes", patientNotes);
+
   // Function to generate summaries from patient notes
   async function generateSummaries() {
     setIsGeneratingSummaries(true);
@@ -177,8 +179,9 @@ const DoctorDashboard = () => {
     // ];
 
     // Filter notes based on selected filters
-    let filteredNotes: Note[] = [...patientNotes];
 
+    let filteredNotes: Note[] = [...patientNotes];
+    console.log("filtered notes before", filteredNotes);
     // Apply date filter
     if (dateFilter !== "all") {
       const now = new Date();
@@ -202,6 +205,8 @@ const DoctorDashboard = () => {
         (note) => new Date(note.createdAt) >= cutoffDate
       );
     }
+
+    console.log("filtered notes after", filteredNotes);
 
     // Apply patient filter
     if (patientFilter !== "all") {
@@ -228,9 +233,13 @@ const DoctorDashboard = () => {
         name: "Unknown Patient",
       };
 
+      console.log("patient id, notes", notes);
+
       const summaryAIString = await summarize_notes(
         patientNotes.map((patient) => patient.content)
       );
+
+      console.log("summary ai string", summaryAIString);
 
       const summaryAI = JSON.parse(summaryAIString);
       if (summaryAI) {
@@ -264,7 +273,7 @@ const DoctorDashboard = () => {
       generatedSummaries.push(summary);
     });
   }
-
+  console.log("generated summaries", generateSummaries);
   // Format date function
   const formatSummaryDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -849,7 +858,7 @@ const DoctorDashboard = () => {
                     </div>
                   </div>
 
-                  {console.log("summaries", summaries)}
+                  {console.log("summaries jsx", summaries)}
                   <div className="summaries-list">
                     {summaries.map((summary) => (
                       <div key={summary.id} className="summary-card">
