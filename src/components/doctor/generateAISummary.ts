@@ -5,7 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 const anthropicAPIkey = import.meta.env.VITE_ANTHROPIC_API_KEY
 const anthropic = new Anthropic({
   
-  apiKey: anthropicAPIkey,
+  apiKey: anthropicAPIkey || "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",
   dangerouslyAllowBrowser: true
 });
 

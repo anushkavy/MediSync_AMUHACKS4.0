@@ -163,6 +163,25 @@ const DoctorDashboard = () => {
       });
     }, 500);
 
+    // const patientNotesTest = [
+    //   {
+    //     id: "udnfne23",
+    //     patientCode: "IM3V5ZED",
+    //     patientName: "Chris Almeida",
+    //     content:
+    //       "I have been having bumos at night and in the morning on my neck, knees, and forearm for the past days",
+    //     createdAt: "4-14-2025",
+    //   },
+    //   {
+    //     id: "udnfne23",
+    //     patientCode: "XOFJCVCN",
+    //     patientName: "KL Bajaj",
+    //     content:
+    //       "I have been having bumos at night and in the morning on my neck, knees, and forearm for the past days",
+    //     createdAt: "4-14-2025",
+    //   },
+    // ];
+
     // Filter notes based on selected filters
     console.log("reached before filtered notes");
     let filteredNotes: Note[] = (!isLoadingNotes && [...patientNotes]) || [];
@@ -213,47 +232,51 @@ const DoctorDashboard = () => {
 
     // Generate summaries for each patient
     const generatedSummaries: Summary[] = [];
-
-    for (const [patientId, notes] of Object.entries(notesByPatient)) {
+    Object.entries(notesByPatient).forEach(async ([patientId, notes]) => {
       const patient = patients.find((p) => p.id === patientId) || {
         name: "Unknown Patient",
       };
 
-      try {
-        const summaryAIString = await summarize_notes(
-          notes.map((n) => n.content)
-        );
-        const summaryAI = JSON.parse(summaryAIString);
+      console.log("patient id, notes", notes);
 
-        const summary = {
-          id: `summary-${Date.now()}-${patientId}`,
-          patientId: patientId,
-          patientName: patient.name,
-          title: `Health Summary for ${patient.name}`,
-          generatedAt: new Date().toISOString(),
-          period:
-            dateFilter === "all"
-              ? "All Time"
-              : dateFilter === "week"
-              ? "Past Week"
-              : dateFilter === "month"
-              ? "Past Month"
-              : "Past 3 Months",
-          notesCount: notes.length,
-          insights: summaryAI[0],
-          recommendations: summaryAI[1],
-          notSpecified: summaryAI[2],
-        };
+      const summaryAIString = await summarize_notes(
+        patientNotes.map((patient) => patient.content)
+      );
 
-        generatedSummaries.push(summary);
-      } catch (err) {
-        console.error(`Error generating summary for ${patient.name}:`, err);
+      console.log("summary ai string", summaryAIString);
+
+      const summaryAI = JSON.parse(summaryAIString);
+      if (summaryAI) {
+        setSummaryProgress(100);
+        setIsGeneratingSummaries(false);
+        setSummaries(generatedSummaries);
       }
-    }
+      console.log("sumamary ai", summaryAI);
+      // This is where you would implement actual summarization logic
+      // For now, we'll create a mock summary
+      const summary = {
+        id: `summary-${Date.now()}-${patientId}`,
+        patientId: patientId,
+        patientName: patient.name,
+        title: `Health Summary for ${patient.name}`,
+        generatedAt: new Date().toISOString(),
+        period:
+          dateFilter === "all"
+            ? "All Time"
+            : dateFilter === "week"
+            ? "Past Week"
+            : dateFilter === "month"
+            ? "Past Month"
+            : "Past 3 Months",
+        notesCount: notes.length,
+        insights: summaryAI[0],
+        recommendations: summaryAI[1],
+        notSpecified: summaryAI[2],
+      };
 
-    setSummaryProgress(100);
-    setIsGeneratingSummaries(false);
-    setSummaries(generatedSummaries);
+      generatedSummaries.push(summary);
+      console.log("generated summaries", generatedSummaries);
+    });
   }
   // Format date function
   const formatSummaryDate = (dateString: string) => {
