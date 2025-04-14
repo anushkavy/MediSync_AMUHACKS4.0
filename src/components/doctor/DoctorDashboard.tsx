@@ -149,113 +149,82 @@ const DoctorDashboard = () => {
 
   // Function to generate summaries from patient notes
   async function generateSummaries() {
-    try {
-      setIsGeneratingSummaries(true);
-      setSummaryProgress(0);
+    setIsGeneratingSummaries(true);
+    setSummaryProgress(0);
 
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setSummaryProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 500);
-
-      // const patientNotesTest = [
-      //   {
-      //     id: "udnfne23",
-      //     patientCode: "IM3V5ZED",
-      //     patientName: "Chris Almeida",
-      //     content:
-      //       "I have been having bumos at night and in the morning on my neck, knees, and forearm for the past days",
-      //     createdAt: "4-14-2025",
-      //   },
-      //   {
-      //     id: "udnfne23",
-      //     patientCode: "XOFJCVCN",
-      //     patientName: "KL Bajaj",
-      //     content:
-      //       "I have been having bumos at night and in the morning on my neck, knees, and forearm for the past days",
-      //     createdAt: "4-14-2025",
-      //   },
-      // ];
-
-      // Filter notes based on selected filters
-      console.log("reached before filtered notes");
-      let filteredNotes: Note[] = (!isLoadingNotes && [...patientNotes]) || [];
-      console.log("filtered notes before", filteredNotes);
-      // Apply date filter
-      if (dateFilter !== "all") {
-        const now = new Date();
-        let cutoffDate = new Date();
-
-        switch (dateFilter) {
-          case "week":
-            cutoffDate.setDate(now.getDate() - 7);
-            break;
-          case "month":
-            cutoffDate.setMonth(now.getMonth() - 1);
-            break;
-          case "3months":
-            cutoffDate.setMonth(now.getMonth() - 3);
-            break;
-          default:
-            break;
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setSummaryProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
         }
-
-        filteredNotes = filteredNotes.filter(
-          (note) => new Date(note.createdAt) >= cutoffDate
-        );
-      }
-
-      console.log("filtered notes after", filteredNotes);
-
-      // Apply patient filter
-      if (patientFilter !== "all") {
-        filteredNotes = filteredNotes.filter(
-          (note: Note) =>
-            note.patientCode === patientFilter ||
-            note.patientName === patientFilter
-        );
-      }
-
-      // Group notes by patient
-      const notesByPatient: { [key: string]: Note[] } = {};
-      filteredNotes.forEach((note: Note) => {
-        if (!notesByPatient[note.patientCode]) {
-          notesByPatient[note.patientCode] = [];
-        }
-        notesByPatient[note.patientCode].push(note);
+        return prev + 10;
       });
+    }, 500);
 
-      // Generate summaries for each patient
-      const generatedSummaries: Summary[] = [];
+    // Filter notes based on selected filters
+    console.log("reached before filtered notes");
+    let filteredNotes: Note[] = (!isLoadingNotes && [...patientNotes]) || [];
+    console.log("filtered notes before", filteredNotes);
+    // Apply date filter
+    if (dateFilter !== "all") {
+      const now = new Date();
+      let cutoffDate = new Date();
 
-      Object.entries(notesByPatient).forEach(async ([patientId, notes]) => {
-        const patient = patients.find((p) => p.id === patientId) || {
-          name: "Unknown Patient",
-        };
+      switch (dateFilter) {
+        case "week":
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case "month":
+          cutoffDate.setMonth(now.getMonth() - 1);
+          break;
+        case "3months":
+          cutoffDate.setMonth(now.getMonth() - 3);
+          break;
+        default:
+          break;
+      }
 
-        console.log("patient id, notes", notes);
+      filteredNotes = filteredNotes.filter(
+        (note) => new Date(note.createdAt) >= cutoffDate
+      );
+    }
 
+    console.log("filtered notes after", filteredNotes);
+
+    // Apply patient filter
+    if (patientFilter !== "all") {
+      filteredNotes = filteredNotes.filter(
+        (note: Note) =>
+          note.patientCode === patientFilter ||
+          note.patientName === patientFilter
+      );
+    }
+
+    // Group notes by patient
+    const notesByPatient: { [key: string]: Note[] } = {};
+    filteredNotes.forEach((note: Note) => {
+      if (!notesByPatient[note.patientCode]) {
+        notesByPatient[note.patientCode] = [];
+      }
+      notesByPatient[note.patientCode].push(note);
+    });
+
+    // Generate summaries for each patient
+    const generatedSummaries: Summary[] = [];
+
+    for (const [patientId, notes] of Object.entries(notesByPatient)) {
+      const patient = patients.find((p) => p.id === patientId) || {
+        name: "Unknown Patient",
+      };
+
+      try {
         const summaryAIString = await summarize_notes(
-          patientNotes.map((patient) => patient.content)
+          notes.map((n) => n.content)
         );
-
-        console.log("summary ai string", summaryAIString);
-
         const summaryAI = JSON.parse(summaryAIString);
-        if (summaryAI) {
-          setSummaryProgress(100);
-          setIsGeneratingSummaries(false);
-          setSummaries(generatedSummaries);
-        }
-        console.log("sumamary ai", summaryAI);
-        // This is where you would implement actual summarization logic
-        // For now, we'll create a mock summary
+
         const summary = {
           id: `summary-${Date.now()}-${patientId}`,
           patientId: patientId,
@@ -277,11 +246,14 @@ const DoctorDashboard = () => {
         };
 
         generatedSummaries.push(summary);
-        console.log("generated summaries", generatedSummaries);
-      });
-    } catch (err) {
-      console.error("Something went wrong inside generateSummaries:", err);
+      } catch (err) {
+        console.error(`Error generating summary for ${patient.name}:`, err);
+      }
     }
+
+    setSummaryProgress(100);
+    setIsGeneratingSummaries(false);
+    setSummaries(generatedSummaries);
   }
   // Format date function
   const formatSummaryDate = (dateString: string) => {
