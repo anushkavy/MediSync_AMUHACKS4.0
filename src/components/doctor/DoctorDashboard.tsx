@@ -183,8 +183,8 @@ const DoctorDashboard = () => {
     // ];
 
     // Filter notes based on selected filters
-
-    let filteredNotes: Note[] = [...patientNotes];
+    console.log("reached before filtered notes");
+    let filteredNotes: Note[] = (!isLoadingNotes && [...patientNotes]) || [];
     console.log("filtered notes before", filteredNotes);
     // Apply date filter
     if (dateFilter !== "all") {
