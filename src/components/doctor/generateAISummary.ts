@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { ContentBlock } from "@anthropic-ai/sdk/resources/index.mjs";
+
 
 
 const anthropicAPIkey = import.meta.env.VITE_ANTHROPIC_API_KEY
@@ -44,7 +46,10 @@ async function summarize_notes(note: string[], details_to_extract = details_to_e
         }
     )
 
-    return response.content[0].text}
+   const text = (response.content[0] as Anthropic.TextBlock).text;
+
+   return text
+}
 
 
 
